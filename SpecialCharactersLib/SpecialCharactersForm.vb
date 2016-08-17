@@ -1,7 +1,10 @@
 Imports System.Windows.Forms
 
 Public Class SpecialCharactersForm
-    Dim specialCharactersPanels As New List(Of SpecialCharactersPanel)
+    Private specialCharactersPanels As New List(Of SpecialCharactersPanel)
+    Private dockLocation As DockStyle
+    Private previousLocation As Drawing.Point
+    Private WithEvents ownerForm As Form
 
     Public Event SpecialCharacterSelected(c As String)
 
@@ -45,10 +48,54 @@ Public Class SpecialCharactersForm
                 AddHandler shortcutPanel.SpecialCharacterSelected, AddressOf HandleSpecialCharacterSelected
             Next
             ResumeLayout()
+            If Me.Visible Then
+                SetLocation()
+            End If
         End Set
     End Property
 
     Private Sub HandleSpecialCharacterSelected(c As String)
         RaiseEvent SpecialCharacterSelected(c)
+    End Sub
+
+    Private Sub SetLocation()
+        Dim screenArea = Screen.FromControl(ownerForm).WorkingArea
+        If ownerForm.Top + ownerForm.Height > screenArea.Height Then
+            Me.Top = screenArea.Height - Me.Height
+        Else
+            Me.Top = ownerForm.Top + (ownerForm.Height - Me.Height)
+        End If
+        If dockLocation = DockStyle.Left Then
+            Me.Left = Math.Max(0, ownerForm.Left - Me.Width)
+        Else
+            If ownerForm.Right + Me.Width > screenArea.Width Then
+                Me.Left = screenArea.Width - Me.Width
+            Else
+                Me.Left = ownerForm.Right
+            End If
+        End If
+        previousLocation = Me.Location
+    End Sub
+
+    Private Sub ParentFormMove(ByVal sender As Object, ByVal e As EventArgs) Handles ownerForm.Move, ownerForm.Resize
+        If previousLocation <> Me.Location Then
+            ' Form has been moved out of its dock location
+            Exit Sub
+        End If
+
+        SetLocation()
+    End Sub
+
+    Public Sub ShowDockedToForm(owner As Form, Optional dockLocation As DockStyle = DockStyle.Left)
+        Me.dockLocation = dockLocation
+        Me.ownerForm = owner
+        SetLocation()
+        Me.Show(owner)
+    End Sub
+
+    Private Sub SpecialCharactersForm_VisibleChanged(sender As Object, e As EventArgs) Handles Me.VisibleChanged
+        If Not Me.Visible Then
+            Me.ownerForm = Nothing
+        End If
     End Sub
 End Class

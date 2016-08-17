@@ -53,3 +53,9 @@ Public Enum ModifierKey
     Alt = 2
     CtrlAlt = 3
 End Enum
+
+Public Enum DockStyle
+    None = 0
+    Left = 3
+    Right = 4
+End Enum
