@@ -8,6 +8,14 @@
         End Set
     End Property
 
+    ' Microsoft.VisualBasic.Devices.Keyboard
+    Private Declare Auto Function GetKeyState Lib "User32.dll" (KeyCode As Integer) As Short
+    Private ReadOnly Property CapsLock() As Boolean
+        Get
+            Return (GetKeyState(20) And 1S) <> 0S
+        End Get
+    End Property
+
     Public Shadows Function ProcessCmdKey(ByRef msg As Windows.Forms.Message, keyData As Windows.Forms.Keys) As Boolean
         If specialCharGroups Is Nothing OrElse specialCharGroups.Count = 0 Then
             Return False
@@ -15,7 +23,7 @@
 
         Dim capsLockPressed As Boolean
         Try
-            capsLockPressed = My.Computer.Keyboard.CapsLock
+            capsLockPressed = CapsLock
         Catch ex As Exception
             capsLockPressed = False
         End Try
